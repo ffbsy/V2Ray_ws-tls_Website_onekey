@@ -607,37 +607,6 @@ modify_userjson(){
 	sed -i "s/SETHEADER/www.${hostheader}.com/g" "${v2ray_user}"
 }
 
-#安装bbr端口加速
-rinetdbbr_install(){
-	export RINET_URL="https://github.com/dylanbai8/V2Ray_ws-tls_Website_onekey/raw/master/bbr/rinetd_bbr_powered"
-	IFACE=$(ip -4 addr | awk '{if ($1 ~ /inet/ && $NF ~ /^[ve]/) {a=$NF}} END{print a}')
-
-	curl -L "${RINET_URL}" >/usr/bin/rinetd-bbr
-	chmod +x /usr/bin/rinetd-bbr
-	judge "rinetd-bbr 安装"
-
-	touch /etc/rinetd-bbr.conf
-	cat <<EOF >> /etc/rinetd-bbr.conf
-0.0.0.0 ${port} 0.0.0.0 ${port}
-EOF
-
-	touch /etc/systemd/system/rinetd-bbr.service
-	cat <<EOF > /etc/systemd/system/rinetd-bbr.service
-[Unit]
-Description=rinetd with bbr
-[Service]
-ExecStart=/usr/bin/rinetd-bbr -f -c /etc/rinetd-bbr.conf raw ${IFACE}
-Restart=always
-User=root
-[Install]
-WantedBy=multi-user.target
-EOF
-	judge "rinetd-bbr 自启动配置"
-
-	systemctl enable rinetd-bbr >/dev/null 2>&1
-	systemctl start rinetd-bbr
-	judge "rinetd-bbr 启动"
-}
 
 #重启nginx和v2ray程序 加载配置
 start_process_systemd(){
